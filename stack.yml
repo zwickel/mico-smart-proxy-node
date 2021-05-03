@@ -1,0 +1,10 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+functions:
+  mico-smart-proxy-node:
+    lang: node
+    handler: ./mico-smart-proxy-node
+    image: mico-smart-proxy-node:latest
+
