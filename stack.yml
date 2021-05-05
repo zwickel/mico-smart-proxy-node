@@ -6,5 +6,5 @@ functions:
   mico-smart-proxy-node:
     lang: node
     handler: ./mico-smart-proxy-node
-    image: mico-smart-proxy-node:latest
+    image: zwickel/mico-smart-proxy-node:latest
 
