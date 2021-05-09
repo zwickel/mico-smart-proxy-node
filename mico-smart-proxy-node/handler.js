@@ -1,5 +1,6 @@
 "use strict"
-// {"id": 1, "time": 11111, "source": "someSource", "data": { "timestamp": 1111, "customerRating": 9, "customerName": "Chris", "serviceType": "standard"}}
+// {"id": "0123456789101112", "returntopic": "car"}
+// {"id": "2111019876543210", "correlationid": "0123456789101112", "returntopic": "smart-proxy"}
 
 const redis = require("async-redis");
 
@@ -11,22 +12,23 @@ module.exports = async (context, callback) => {
     if (cloudEvent.hasOwnProperty("correlationid") && cloudEvent.correlationid != null && await client.get(cloudEvent.correlationid) != null) {
         // Message comes back from service and is sent back to requestor.
         // Get stored data.
-        const stored = await client.get(cloudEvent.correlationid);
-        // Set message headers so it is returned to initial requestor.
-        cloudEvent[["routingslip"]] = [[stored.returnAddress]];
-        cloudEvent[["correlationid"]] == stored.corId;
-        // Remove entry from store.
+        const stored = JSON.parse(await client.get(cloudEvent.correlationid));
         await client.del(cloudEvent.correlationid);
+        // Set message headers so it is returned to initial requestor.
+        cloudEvent.routingslip = [[stored.returnAddress]];
+        cloudEvent.correlationid = stored.corId;
+        cloudEvent.returntopic = null;
+        // Remove entry from store.
     } else {
         // Message comes from requestor and will be forwarded to service.
         // Store return address.
         const msgId = cloudEvent.id;
         const returnAddress = cloudEvent.returntopic;
-        await client.set(msgId, { "corId": msgId, "returnAddress": returnAddress });
+        await client.set(msgId, JSON.stringify({ corId: msgId, returnAddress: returnAddress }));
 
         // Prepare message to send to service.
-        cloudEvent[["routingslip"]] = [['service-in']];
-        cloudEvent[["returntopic"]] = [['smart-proxy']];
+        cloudEvent.routingslip = [['service-in']];
+        cloudEvent.returntopic = 'smart-proxy';
     }
 
     client.quit();
