@@ -13,12 +13,12 @@ module.exports = async (context, callback) => {
         // Message comes back from service and is sent back to requestor.
         // Get stored data.
         const stored = JSON.parse(await client.get(cloudEvent.correlationid));
+        // Remove entry from store.
         await client.del(cloudEvent.correlationid);
         // Set message headers so it is returned to initial requestor.
         cloudEvent.routingslip = [[stored.returnAddress]];
         cloudEvent.correlationid = stored.corId;
         cloudEvent.returntopic = null;
-        // Remove entry from store.
     } else {
         // Message comes from requestor and will be forwarded to service.
         // Store return address.
